@@ -3,40 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>35+ Strength & Burn Tracker</title>
+    <title>35+ Strength</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-200 min-h-screen pb-24"> <div class="fixed top-0 w-full bg-slate-800 border-b border-slate-700 z-10 p-4 flex justify-between items-center shadow-lg">
+<body class="bg-slate-900 text-slate-200 min-h-screen pb-24">
+
+    <div class="fixed top-0 w-full bg-slate-800 border-b border-slate-700 z-10 p-4 flex justify-between items-center shadow-lg">
         <h1 class="font-bold text-xl text-emerald-400"><i class="fas fa-dumbbell mr-2"></i>Strength</h1>
         <select id="daySelector" class="bg-slate-700 text-white p-2 rounded border border-slate-600 focus:outline-none focus:border-emerald-500">
             </select>
     </div>
 
     <div class="container mx-auto px-4 pt-24 max-w-md" id="app">
-        
+        <div id="errorBox" class="hidden bg-red-900 border border-red-500 text-white p-4 rounded mb-4 text-sm"></div>
+
         <div class="bg-slate-800 rounded-lg p-4 mb-6 shadow-md border border-slate-700">
             <h2 class="text-lg font-semibold mb-2 text-white">Focus for Today</h2>
-            <p id="dailyFocus" class="text-slate-400 text-sm italic">Select a day to begin.</p>
+            <p id="dailyFocus" class="text-slate-400 text-sm italic">Loading...</p>
         </div>
 
-        <div id="exerciseList" class="space-y-4">
-            </div>
+        <div id="exerciseList" class="space-y-4"></div>
 
         <div class="mt-6">
             <label class="block text-sm font-medium text-slate-400 mb-1">Workout Notes</label>
-            <textarea id="workoutNotes" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm focus:border-emerald-500 outline-none" rows="3" placeholder="How did it feel? Any pain points?"></textarea>
+            <textarea id="workoutNotes" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm focus:border-emerald-500 outline-none" rows="3" placeholder="How did it feel?"></textarea>
         </div>
 
         <button onclick="saveWorkout()" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded shadow-lg transition-colors">
             <i class="fas fa-save mr-2"></i> Log Workout
         </button>
+        
+        <button onclick="clearAllData()" class="w-full mt-4 bg-slate-800 text-slate-500 text-xs py-2 rounded hover:text-red-400">
+            <i class="fas fa-trash mr-1"></i> Reset App Data (Fix Crashes)
+        </button>
     </div>
 
-    <button onclick="toggleTimer()" class="fixed bottom-6 right-6 bg-slate-700 text-emerald-400 w-14 h-14 rounded-full shadow-2xl border border-emerald-500/30 z-20 flex items-center justify-center hover:bg-slate-600 transition-all">
+    <button onclick="toggleTimer()" class="fixed bottom-6 right-6 bg-slate-700 text-emerald-400 w-14 h-14 rounded-full shadow-2xl border border-emerald-500/30 z-20 flex items-center justify-center hover:bg-slate-600 transition-all active:scale-95">
         <i class="fas fa-stopwatch text-2xl"></i>
     </button>
 
@@ -46,14 +52,22 @@
             <div id="timerDisplay" class="text-3xl font-mono font-bold text-emerald-400">00:00</div>
         </div>
         <div class="flex gap-2">
-            <button onclick="startTimer(45)" class="bg-slate-700 border border-slate-600 px-4 py-2 rounded font-bold hover:bg-slate-600 active:bg-emerald-600 transition-colors">45s</button>
-            <button onclick="startTimer(60)" class="bg-slate-700 border border-slate-600 px-4 py-2 rounded font-bold hover:bg-slate-600 active:bg-emerald-600 transition-colors">60s</button>
+            <button onclick="startTimer(45)" class="bg-slate-700 border border-slate-600 px-4 py-2 rounded font-bold hover:bg-slate-600">45s</button>
+            <button onclick="startTimer(60)" class="bg-slate-700 border border-slate-600 px-4 py-2 rounded font-bold hover:bg-slate-600">60s</button>
             <button onclick="toggleTimer()" class="text-slate-400 px-3 hover:text-white"><i class="fas fa-chevron-down"></i></button>
         </div>
     </div>
 
     <script>
-        // --- 1. THE DATA MODEL ---
+        // Global Error Handler to catch crashes
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            const box = document.getElementById('errorBox');
+            box.classList.remove('hidden');
+            box.innerHTML = `<strong>App Crash:</strong> ${msg}<br>Try clicking 'Reset App Data' below.`;
+            return false;
+        };
+
+        // --- 1. DATA ---
         const workoutData = {
             day1: {
                 title: "Day 1: Legs (Posterior)",
@@ -77,7 +91,7 @@
             },
             day3: {
                 title: "Day 3: Active Recovery",
-                focus: "Mobility flow and core stability. Keep weights moderate.",
+                focus: "Mobility flow and core stability.",
                 exercises: [
                     { name: "DB Woodchoppers", sets: 3, reps: "10/side", note: "Light DB" },
                     { name: "Weighted Glute Bridge", sets: 3, reps: "15", note: "Heavy DB on hips" },
@@ -100,13 +114,63 @@
                 focus: "High heart rate. Empty the tank.",
                 exercises: [
                     { name: "Ladder: DB Thrusters", sets: 1, reps: "10-1", note: "Descend 10,9,8...1" },
-                    { name: "Ladder: Floor Press", sets: 1, reps: "10-1", note: "Superset with Thrusters" },
+                    { name: "Ladder: Floor Press", sets: 1, reps: "10-1", note: "Superset w/ Thrusters" },
                     { name: "Finisher Plank", sets: 1, reps: "Max", note: "If done < 20 mins" }
                 ]
             }
         };
 
-        // --- 2. APP STATE & INITIALIZATION ---
+        // --- 2. INIT ---
         const selector = document.getElementById('daySelector');
         const list = document.getElementById('exerciseList');
-        const focusText = document
+        const focusText = document.getElementById('dailyFocus');
+        const notesInput = document.getElementById('workoutNotes');
+        let currentTimer = null;
+
+        // Populate Dropdown
+        Object.keys(workoutData).forEach(key => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.text = workoutData[key].title;
+            selector.appendChild(option);
+        });
+
+        // Safe Load Logic (Prevents crashes if local storage is corrupt)
+        try {
+            const savedDay = localStorage.getItem('lastDay');
+            if (savedDay && workoutData[savedDay]) {
+                selector.value = savedDay;
+                renderDay(savedDay);
+            } else {
+                selector.value = 'day1';
+                renderDay('day1');
+            }
+        } catch (e) {
+            console.error("Load error", e);
+            selector.value = 'day1';
+            renderDay('day1');
+        }
+
+        selector.addEventListener('change', (e) => {
+            renderDay(e.target.value);
+            localStorage.setItem('lastDay', e.target.value);
+        });
+
+        // --- 3. RENDER ---
+        function renderDay(dayKey) {
+            const data = workoutData[dayKey];
+            if (!data) return; // Safety check
+
+            focusText.innerText = data.focus;
+            list.innerHTML = '';
+            
+            let logs = {};
+            try {
+                logs = JSON.parse(localStorage.getItem(`logs_${dayKey}`)) || {};
+            } catch (e) {
+                console.log("Error parsing logs, resetting for this day");
+                logs = {};
+            }
+
+            data.exercises.forEach((ex, index) => {
+                const exId = `${
