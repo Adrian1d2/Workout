@@ -8,11 +8,13 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        /* Prevent accidental double-tap zoom on buttons */
         button { touch-action: manipulation; }
+        /* Smooth fade for elements */
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-200 min-h-screen pb-24">
+<body class="bg-slate-900 text-slate-200 min-h-screen pb-32">
 
     <div class="fixed top-0 w-full bg-slate-800 border-b border-slate-700 z-10 p-4 flex justify-between items-center shadow-lg">
         <h1 class="font-bold text-xl text-emerald-400"><i class="fas fa-dumbbell mr-2"></i>Strength</h1>
@@ -22,19 +24,31 @@
 
     <div class="container mx-auto px-4 pt-24 max-w-md" id="app">
         
-        <div class="bg-slate-800 rounded-lg p-4 mb-6 shadow-md border border-slate-700">
-            <h2 class="text-lg font-semibold mb-2 text-white">Focus for Today</h2>
-            <p id="dailyFocus" class="text-slate-400 text-sm italic">Select a workout...</p>
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg p-5 mb-6 shadow-lg border border-slate-700 fade-in">
+            <h2 class="text-sm uppercase tracking-wide text-emerald-500 font-bold mb-1">Workout Strategy</h2>
+            <p id="dailyStrategy" class="text-white text-base font-medium mb-2">Loading...</p>
+            <div class="bg-slate-800/50 p-3 rounded border border-slate-700/50">
+                 <p id="dailyFocus" class="text-slate-400 text-sm italic">Loading...</p>
+            </div>
         </div>
 
-        <div id="exerciseList" class="space-y-4"></div>
-
-        <div class="mt-6">
-            <label class="block text-sm font-medium text-slate-400 mb-1">Workout Notes</label>
-            <textarea id="workoutNotes" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm focus:border-emerald-500 outline-none" rows="3" placeholder="How did it feel?"></textarea>
+        <div class="mb-6 fade-in">
+            <h3 class="text-xs uppercase text-slate-500 font-bold mb-2 ml-1">Warm Up (Required)</h3>
+            <div id="warmupList" class="space-y-2">
+                </div>
         </div>
 
-        <button id="saveBtn" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded shadow-lg transition-colors">
+        <div class="mb-2">
+            <h3 class="text-xs uppercase text-slate-500 font-bold mb-2 ml-1">Main Workout</h3>
+            <div id="exerciseList" class="space-y-4"></div>
+        </div>
+
+        <div class="mt-8 fade-in">
+            <label class="block text-sm font-medium text-slate-400 mb-1">Session Notes</label>
+            <textarea id="workoutNotes" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm focus:border-emerald-500 outline-none" rows="3" placeholder="How did the weights feel today?"></textarea>
+        </div>
+
+        <button id="saveBtn" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-4 rounded shadow-lg transition-colors">
             <i class="fas fa-save mr-2"></i> Log Workout
         </button>
 
@@ -45,75 +59,91 @@
         </div>
     </div>
 
-    <button id="timerToggleBtn" class="fixed bottom-6 right-6 bg-slate-700 text-emerald-400 w-14 h-14 rounded-full shadow-2xl border border-emerald-500/30 z-20 flex items-center justify-center hover:bg-slate-600 transition-all active:scale-95">
-        <i class="fas fa-stopwatch text-2xl"></i>
+    <button id="timerToggleBtn" class="fixed bottom-6 right-6 bg-slate-700 text-emerald-400 w-16 h-16 rounded-full shadow-2xl border border-emerald-500/30 z-20 flex items-center justify-center hover:bg-slate-600 transition-all active:scale-95">
+        <i class="fas fa-stopwatch text-3xl"></i>
     </button>
 
     <div id="timerContainer" class="fixed bottom-0 left-0 w-full bg-slate-800 border-t border-slate-600 p-6 z-30 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)] transition-transform transform translate-y-full">
         <div>
             <span class="text-xs text-slate-400 uppercase tracking-wide">Rest Timer</span>
-            <div id="timerDisplay" class="text-3xl font-mono font-bold text-emerald-400">00:00</div>
+            <div id="timerDisplay" class="text-4xl font-mono font-bold text-emerald-400">00:00</div>
         </div>
         <div class="flex gap-2">
-            <button data-time="45" class="timer-btn bg-slate-700 border border-slate-600 px-4 py-2 rounded font-bold hover:bg-slate-600">45s</button>
-            <button data-time="60" class="timer-btn bg-slate-700 border border-slate-600 px-4 py-2 rounded font-bold hover:bg-slate-600">60s</button>
-            <button id="closeTimerBtn" class="text-slate-400 px-3 hover:text-white"><i class="fas fa-chevron-down"></i></button>
+            <button data-time="45" class="timer-btn bg-slate-700 border border-slate-600 px-4 py-3 rounded font-bold hover:bg-slate-600 active:bg-emerald-600">45s</button>
+            <button data-time="60" class="timer-btn bg-slate-700 border border-slate-600 px-4 py-3 rounded font-bold hover:bg-slate-600 active:bg-emerald-600">60s</button>
+            <button id="closeTimerBtn" class="text-slate-400 px-4 hover:text-white"><i class="fas fa-chevron-down"></i></button>
         </div>
     </div>
 
     <script>
-        // Wait for HTML to load before running ANY JavaScript
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- DATA ---
+            // --- DATA MODEL (Updated with Strategy + Warmup) ---
+            const commonWarmup = [
+                "Jumping Jacks (60s)",
+                "Arm Circles (30s fwd/back)",
+                "Cat-Cow Stretch (60s)",
+                "World's Greatest Stretch (2 min)"
+            ];
+
             const workoutData = {
                 day1: {
                     title: "Day 1: Legs (Posterior)",
-                    focus: "Heavy hinging. Glutes and Hamstrings.",
+                    strategy: "CIRCUIT: Perform exercises 1-3 back-to-back. Rest 60s. Repeat 4 Rounds.",
+                    focus: "Heavy hinging. Keep back flat on RDLs.",
+                    warmup: commonWarmup,
                     exercises: [
-                        { name: "DB Romanian Deadlift", sets: 4, reps: "10", note: "Heavy (50-70 lbs)" },
-                        { name: "Bulgarian Split Squat", sets: 3, reps: "8/leg", note: "Moderate (25-40 lbs)" },
-                        { name: "Standing Calf Raise", sets: 3, reps: "15", note: "Hold DBs at sides" },
-                        { name: "Pigeon Pose Stretch", sets: 1, reps: "60s", note: "Cool down" }
+                        { name: "1. DB Romanian Deadlift", sets: 4, reps: "10", note: "Heavy (50-70 lbs)" },
+                        { name: "2. Bulgarian Split Squat", sets: 4, reps: "8/leg", note: "Moderate (25-40 lbs)" },
+                        { name: "3. Standing Calf Raise", sets: 4, reps: "15", note: "Hold DBs at sides" },
+                        { name: "4. Pigeon Pose Stretch", sets: 1, reps: "60s", note: "Cool down" }
                     ]
                 },
                 day2: {
                     title: "Day 2: Push (Chest/Shoulders)",
-                    focus: "Upper body strength and shoulder cap development.",
+                    strategy: "CIRCUIT: Perform 1-4 back-to-back. Rest 60s. Repeat 4 Rounds.",
+                    focus: "Control the descent. Don't rush.",
+                    warmup: commonWarmup,
                     exercises: [
-                        { name: "Flat DB Bench Press", sets: 4, reps: "8-10", note: "Heavy" },
-                        { name: "Standing Lateral Raise", sets: 4, reps: "12-15", note: "Light (10-15 lbs)" },
-                        { name: "DB Skullcrushers", sets: 3, reps: "10", note: "Lying on bench" },
-                        { name: "Russian Twists", sets: 3, reps: "20 total", note: "Core focus" }
+                        { name: "1. Flat DB Bench Press", sets: 4, reps: "8-10", note: "Heavy" },
+                        { name: "2. Standing Lateral Raise", sets: 4, reps: "12-15", note: "Light (10-15 lbs)" },
+                        { name: "3. DB Skullcrushers", sets: 4, reps: "10", note: "Lying on bench" },
+                        { name: "4. Russian Twists", sets: 4, reps: "20 total", note: "Core focus" }
                     ]
                 },
                 day3: {
                     title: "Day 3: Active Recovery",
-                    focus: "Mobility flow and core stability.",
+                    strategy: "FLOW: Move through 1-4 continuously. Rest only as needed. Go for 20 mins.",
+                    focus: "Quality of movement over weight.",
+                    warmup: commonWarmup,
                     exercises: [
-                        { name: "DB Woodchoppers", sets: 3, reps: "10/side", note: "Light DB" },
-                        { name: "Weighted Glute Bridge", sets: 3, reps: "15", note: "Heavy DB on hips" },
-                        { name: "Bird-Dog Rows", sets: 3, reps: "10/side", note: "Bench support" },
-                        { name: "Plank Hold", sets: 3, reps: "45-60s", note: "Core tight" }
+                        { name: "1. DB Woodchoppers", sets: 3, reps: "10/side", note: "Light DB" },
+                        { name: "2. Weighted Glute Bridge", sets: 3, reps: "15", note: "Heavy DB on hips" },
+                        { name: "3. Bird-Dog Rows", sets: 3, reps: "10/side", note: "Bench support" },
+                        { name: "4. Plank Hold", sets: 3, reps: "45-60s", note: "Core tight" }
                     ]
                 },
                 day4: {
                     title: "Day 4: Pull (Back/Bicep)",
-                    focus: "Posture correction and grip strength.",
+                    strategy: "CIRCUIT: Perform 1-4 back-to-back. Rest 60s. Repeat 4 Rounds.",
+                    focus: "Squeeze shoulder blades on rows.",
+                    warmup: commonWarmup,
                     exercises: [
-                        { name: "One-Arm DB Row", sets: 4, reps: "8-10", note: "Heavy" },
-                        { name: "DB Rear Delt Flys", sets: 4, reps: "12-15", note: "Light (seated)" },
-                        { name: "Incline/Seated Curls", sets: 3, reps: "10", note: "Full stretch" },
-                        { name: "Farmer's Carry", sets: 3, reps: "60s", note: "Max heavy walk" }
+                        { name: "1. One-Arm DB Row", sets: 4, reps: "8-10", note: "Heavy" },
+                        { name: "2. DB Rear Delt Flys", sets: 4, reps: "12-15", note: "Light (seated)" },
+                        { name: "3. Incline/Seated Curls", sets: 4, reps: "10", note: "Full stretch" },
+                        { name: "4. Farmer's Carry", sets: 4, reps: "60s", note: "Max heavy walk" }
                     ]
                 },
                 day5: {
                     title: "Day 5: Metabolic Finisher",
-                    focus: "High heart rate. Empty the tank.",
+                    strategy: "LADDER: Do 10 reps of A+B, then 9, then 8... down to 1. No rest.",
+                    focus: "High Intensity. Empty the tank.",
+                    warmup: commonWarmup,
                     exercises: [
-                        { name: "Ladder: DB Thrusters", sets: 1, reps: "10-1", note: "Descend 10,9,8...1" },
-                        { name: "Ladder: Floor Press", sets: 1, reps: "10-1", note: "Superset w/ Thrusters" },
-                        { name: "Finisher Plank", sets: 1, reps: "Max", note: "If done < 20 mins" }
+                        { name: "A. DB Thrusters", sets: 1, reps: "10-1", note: "Squat to Press" },
+                        { name: "B. Floor Press", sets: 1, reps: "10-1", note: "Keep hips up" },
+                        { name: "Finisher: Plank", sets: 1, reps: "Max", note: "Until failure" }
                     ]
                 }
             };
@@ -121,6 +151,8 @@
             // --- SELECTORS ---
             const selector = document.getElementById('daySelector');
             const list = document.getElementById('exerciseList');
+            const warmupList = document.getElementById('warmupList');
+            const strategyText = document.getElementById('dailyStrategy');
             const focusText = document.getElementById('dailyFocus');
             const notesInput = document.getElementById('workoutNotes');
             const saveBtn = document.getElementById('saveBtn');
@@ -129,9 +161,8 @@
             const timerDisplay = document.getElementById('timerDisplay');
             let currentTimer = null;
 
-            // --- INITIALIZATION ---
+            // --- INIT ---
             function init() {
-                // Populate Dropdown
                 selector.innerHTML = '';
                 Object.keys(workoutData).forEach(key => {
                     const option = document.createElement('option');
@@ -140,7 +171,6 @@
                     selector.appendChild(option);
                 });
 
-                // Load last day
                 const savedDay = localStorage.getItem('lastDay') || 'day1';
                 if(workoutData[savedDay]) {
                     selector.value = savedDay;
@@ -154,38 +184,52 @@
             // --- RENDER ---
             function renderDay(dayKey) {
                 const data = workoutData[dayKey];
-                focusText.innerText = data.focus;
+                
+                // 1. Text Info
+                strategyText.innerText = data.strategy;
+                focusText.innerText = "Focus: " + data.focus;
+                
+                // 2. Clear Lists
                 list.innerHTML = '';
+                warmupList.innerHTML = '';
 
-                // Get logs safely
+                // 3. Render Warmup
+                data.warmup.forEach(item => {
+                    const html = `
+                    <div class="flex items-center bg-slate-800 p-3 rounded border border-slate-700">
+                        <div class="w-4 h-4 bg-emerald-500 rounded-full mr-3 flex-shrink-0 opacity-50"></div>
+                        <span class="text-slate-300 text-sm">${item}</span>
+                    </div>`;
+                    warmupList.insertAdjacentHTML('beforeend', html);
+                });
+
+                // 4. Render Main Exercises
                 let logs = {};
-                try {
-                    logs = JSON.parse(localStorage.getItem(`logs_${dayKey}`)) || {};
-                } catch(e) { logs = {}; }
+                try { logs = JSON.parse(localStorage.getItem(`logs_${dayKey}`)) || {}; } catch(e) {}
 
                 data.exercises.forEach((ex, index) => {
                     const exId = `${dayKey}_ex_${index}`;
                     const savedWeight = logs[exId]?.weight || '';
                     
                     const html = `
-                    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 shadow-sm">
-                        <div class="flex justify-between items-start mb-2">
+                    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 shadow-sm fade-in">
+                        <div class="flex justify-between items-start mb-3">
                             <div>
                                 <h3 class="font-bold text-lg text-white">${ex.name}</h3>
-                                <div class="text-xs text-emerald-400 font-mono">${ex.sets} Sets x ${ex.reps} Reps</div>
-                                <div class="text-xs text-slate-400 mt-1">${ex.note}</div>
+                                <div class="text-xs text-emerald-400 font-mono mt-1">${ex.sets} Sets x ${ex.reps} Reps</div>
+                                <div class="text-xs text-slate-400 mt-0.5">${ex.note}</div>
                             </div>
                         </div>
-                        <div class="flex gap-3 mt-3">
+                        <div class="flex gap-3">
                             <div class="w-1/2">
-                                <label class="text-[10px] uppercase text-slate-500 block">Weight (lbs)</label>
+                                <label class="text-[10px] uppercase text-slate-500 block mb-1">Weight (lbs)</label>
                                 <input type="number" data-id="${exId}" value="${savedWeight}" placeholder="-" 
-                                    class="weight-input w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:border-emerald-500 outline-none">
+                                    class="weight-input w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:border-emerald-500 outline-none text-lg">
                             </div>
                             <div class="w-1/2">
-                                <label class="text-[10px] uppercase text-slate-500 block">Notes</label>
-                                <input type="text" placeholder="Reps..." 
-                                    class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:border-emerald-500 outline-none">
+                                <label class="text-[10px] uppercase text-slate-500 block mb-1">Notes/Reps</label>
+                                <input type="text" placeholder="e.g. 10,10,9,8" 
+                                    class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:border-emerald-500 outline-none text-sm h-[46px]">
                             </div>
                         </div>
                     </div>`;
@@ -196,31 +240,21 @@
             }
 
             // --- EVENTS ---
-            
-            // Change Day
             selector.addEventListener('change', (e) => {
-                const val = e.target.value;
-                localStorage.setItem('lastDay', val);
-                renderDay(val);
+                localStorage.setItem('lastDay', e.target.value);
+                renderDay(e.target.value);
             });
 
-            // Save Workout
             saveBtn.addEventListener('click', () => {
                 const dayKey = selector.value;
-                const logToSave = {
-                    date: new Date().toISOString(),
-                    notes: notesInput.value
-                };
-
-                // Gather all weight inputs
-                const inputs = document.querySelectorAll('.weight-input');
-                inputs.forEach(input => {
+                const logToSave = { date: new Date().toISOString(), notes: notesInput.value };
+                
+                document.querySelectorAll('.weight-input').forEach(input => {
                     logToSave[input.dataset.id] = { weight: input.value };
                 });
 
                 localStorage.setItem(`logs_${dayKey}`, JSON.stringify(logToSave));
 
-                // Visual Feedback
                 const originalText = saveBtn.innerHTML;
                 saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
                 saveBtn.classList.add('bg-emerald-700');
@@ -230,57 +264,41 @@
                 }, 2000);
             });
 
-            // Reset Data
             resetBtn.addEventListener('click', () => {
-                if(confirm("Delete all saved data?")) {
-                    localStorage.clear();
-                    init();
-                }
+                if(confirm("Delete all saved data?")) { localStorage.clear(); location.reload(); }
             });
 
-            // --- TIMER LOGIC ---
+            // Timer Logic
             document.getElementById('timerToggleBtn').addEventListener('click', () => {
                 timerContainer.classList.toggle('translate-y-full');
             });
-
             document.getElementById('closeTimerBtn').addEventListener('click', () => {
                 timerContainer.classList.add('translate-y-full');
             });
-
             document.querySelectorAll('.timer-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const sec = parseInt(e.target.dataset.time);
-                    startTimer(sec);
-                });
+                btn.addEventListener('click', (e) => startTimer(parseInt(e.target.dataset.time)));
             });
 
             function startTimer(seconds) {
                 clearInterval(currentTimer);
                 let remaining = seconds;
-                
                 timerDisplay.innerText = formatTime(remaining);
-                timerDisplay.classList.remove('text-red-500', 'animate-pulse');
-                timerDisplay.classList.add('text-emerald-400');
-
+                timerDisplay.className = "text-4xl font-mono font-bold text-emerald-400";
+                
                 currentTimer = setInterval(() => {
                     remaining--;
                     timerDisplay.innerText = formatTime(remaining);
                     if (remaining <= 0) {
                         clearInterval(currentTimer);
                         timerDisplay.innerText = "GO!";
-                        timerDisplay.classList.remove('text-emerald-400');
-                        timerDisplay.classList.add('text-red-500', 'animate-pulse');
+                        timerDisplay.className = "text-4xl font-mono font-bold text-red-500 animate-pulse";
                     }
                 }, 1000);
             }
-
-            function formatTime(sec) {
-                const m = Math.floor(sec / 60).toString().padStart(2, '0');
-                const s = (sec % 60).toString().padStart(2, '0');
-                return `${m}:${s}`;
+            function formatTime(s) {
+                return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
             }
 
-            // Run Init
             init();
         });
     </script>
