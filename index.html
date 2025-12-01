@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>39 Athletic: Pro Tracker</title>
+    <title>39 Athletic: Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         button { touch-action: manipulation; }
@@ -17,7 +18,13 @@
 </head>
 <body class="bg-slate-900 text-slate-200 min-h-screen pb-32">
 
-    <div class="fixed top-0 w-full bg-slate-800 border-b border-slate-700 z-10 p-4 flex justify-between items-center shadow-lg">
+    <div class="bg-red-900/50 p-2 text-center text-xs">
+        <button onclick="localStorage.clear(); location.reload();" class="text-red-300 underline hover:text-white">
+            <i class="fas fa-exclamation-triangle mr-1"></i>Tap here if app is stuck (Factory Reset)
+        </button>
+    </div>
+
+    <div class="sticky top-0 w-full bg-slate-800 border-b border-slate-700 z-10 p-4 flex justify-between items-center shadow-lg">
         <h1 class="font-bold text-xl text-emerald-400"><i class="fas fa-chart-line mr-2"></i>Athletic 39</h1>
         <div class="flex items-center gap-3">
             <span id="saveStatus" class="text-xs text-slate-500 font-mono transition-colors"><i class="fas fa-wifi mr-1"></i>Ready</span>
@@ -26,7 +33,7 @@
         </div>
     </div>
 
-    <div class="container mx-auto px-4 pt-24 max-w-md" id="app">
+    <div class="container mx-auto px-4 pt-6 max-w-md" id="app">
         
         <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg p-5 mb-6 shadow-lg border border-slate-700 fade-in">
             <h2 class="text-xs uppercase tracking-wide text-emerald-500 font-bold mb-1">Execution Strategy</h2>
@@ -50,12 +57,6 @@
 
         <div class="text-center mt-6 text-xs text-slate-500 italic">
             <i class="fas fa-check-circle mr-1"></i> Auto-saving history...
-        </div>
-
-        <div class="text-center mt-8">
-            <button id="resetBtn" class="text-xs text-slate-600 hover:text-red-400 underline">
-                Reset App Data
-            </button>
         </div>
     </div>
 
@@ -156,54 +157,30 @@
             const warmupList = document.getElementById('warmupList');
             const strategyText = document.getElementById('dailyStrategy');
             const notesInput = document.getElementById('workoutNotes');
-            const resetBtn = document.getElementById('resetBtn');
             const saveStatus = document.getElementById('saveStatus');
             const timerContainer = document.getElementById('timerContainer');
             const timerDisplay = document.getElementById('timerDisplay');
             let currentTimer = null;
             let chartInstance = null;
 
-            // --- VOICE SETUP ---
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const hasVoice = !!SpeechRecognition;
-
-            function startListening(targetInputId, iconId) {
-                if (!hasVoice) { alert("Voice not supported"); return; }
-                const recognition = new SpeechRecognition();
-                recognition.lang = 'en-US';
-                recognition.interimResults = false;
-                recognition.maxAlternatives = 1;
-                
-                const icon = document.getElementById(iconId);
-                icon.classList.add('mic-active');
-                recognition.start();
-
-                recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
-                    const number = transcript.replace(/[^0-9.]/g, ''); 
-                    if (number) {
-                        document.getElementById(targetInputId).value = number;
-                        triggerAutoSave();
-                    }
-                    icon.classList.remove('mic-active');
-                };
-                recognition.onerror = () => icon.classList.remove('mic-active');
-                recognition.onend = () => icon.classList.remove('mic-active');
-            }
-
-            // --- CORE FUNCTIONS ---
+            // --- INIT SAFEGUARD ---
             function init() {
-                selector.innerHTML = '';
-                Object.keys(workoutData).forEach(key => {
-                    const option = document.createElement('option');
-                    option.value = key;
-                    option.text = workoutData[key].title;
-                    selector.appendChild(option);
-                });
+                try {
+                    selector.innerHTML = '';
+                    Object.keys(workoutData).forEach(key => {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.text = workoutData[key].title;
+                        selector.appendChild(option);
+                    });
 
-                const savedDay = localStorage.getItem('lastDay') || 'day1';
-                selector.value = workoutData[savedDay] ? savedDay : 'day1';
-                renderDay(selector.value);
+                    const savedDay = localStorage.getItem('lastDay') || 'day1';
+                    selector.value = workoutData[savedDay] ? savedDay : 'day1';
+                    renderDay(selector.value);
+                } catch (e) {
+                    console.error("Init failed:", e);
+                    alert("App data corruption detected. Please tap the Factory Reset button at the top.");
+                }
             }
 
             function renderDay(dayKey) {
@@ -218,7 +195,7 @@
                 });
 
                 let logs = {};
-                try { logs = JSON.parse(localStorage.getItem(`logs_${dayKey}`)) || {}; } catch(e) {}
+                try { logs = JSON.parse(localStorage.getItem(`logs_${dayKey}`)) || {}; } catch(e) { logs = {}; }
 
                 data.exercises.forEach((ex, index) => {
                     const exId = `${dayKey}_ex_${index}`;
@@ -257,13 +234,17 @@
                     list.insertAdjacentHTML('beforeend', html);
                 });
 
-                // Attach Listeners
-                data.exercises.forEach((ex, index) => {
-                    const exId = `${dayKey}_ex_${index}`;
-                    const micBtn = document.getElementById(`mic_${exId}`);
-                    if(micBtn) micBtn.addEventListener('click', () => startListening(`weight_${exId}`, `mic_${exId}`));
-                });
+                // Attach Voice Listeners
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    data.exercises.forEach((ex, index) => {
+                        const exId = `${dayKey}_ex_${index}`;
+                        const micBtn = document.getElementById(`mic_${exId}`);
+                        if(micBtn) micBtn.addEventListener('click', () => startListening(`weight_${exId}`, `mic_${exId}`));
+                    });
+                }
 
+                // Attach Auto-Save
                 document.querySelectorAll('.auto-save-input').forEach(input => {
                     input.addEventListener('input', triggerAutoSave);
                 });
@@ -271,24 +252,47 @@
                 notesInput.value = logs.notes || '';
             }
 
-            // --- AUTO SAVE & HISTORY ---
+            // --- VOICE ---
+            function startListening(targetInputId, iconId) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                
+                const icon = document.getElementById(iconId);
+                icon.classList.add('mic-active');
+                recognition.start();
+
+                recognition.onresult = (event) => {
+                    const number = event.results[0][0].transcript.replace(/[^0-9.]/g, ''); 
+                    if (number) {
+                        document.getElementById(targetInputId).value = number;
+                        triggerAutoSave();
+                    }
+                    icon.classList.remove('mic-active');
+                };
+                recognition.onend = () => icon.classList.remove('mic-active');
+                recognition.onerror = () => icon.classList.remove('mic-active');
+            }
+
+            // --- AUTO SAVE ---
             function triggerAutoSave() {
                 const dayKey = selector.value;
                 const logToSave = { date: new Date().toISOString(), notes: notesInput.value };
                 
-                const inputs = document.querySelectorAll('input[type="number"]');
-                inputs.forEach(input => {
+                document.querySelectorAll('input[type="number"]').forEach(input => {
                     const id = input.getAttribute('data-id');
                     if(id) logToSave[id] = { weight: input.value };
                 });
 
-                // 1. Save Current State (for persistent inputs)
                 localStorage.setItem(`logs_${dayKey}`, JSON.stringify(logToSave));
                 
-                // 2. Save History (for charts)
-                saveToHistory(dayKey, logToSave);
+                // Save History (Safe Mode)
+                try {
+                    saveToHistory(dayKey, logToSave);
+                } catch(e) { console.warn("History save error", e); }
 
-                // Visual Feedback
                 saveStatus.innerHTML = '<i class="fas fa-check text-emerald-400"></i> Saved';
                 saveStatus.classList.add('text-emerald-400');
                 setTimeout(() => {
@@ -298,11 +302,106 @@
             }
 
             function saveToHistory(dayKey, currentLog) {
-                let history = JSON.parse(localStorage.getItem('workout_history')) || [];
-                const today = new Date().toISOString().split('T')[0];
+                let history = [];
+                try { history = JSON.parse(localStorage.getItem('workout_history')) || []; } catch(e) {}
                 
-                // Find if we already have an entry for TODAY and THIS DAYKEY
+                const today = new Date().toISOString().split('T')[0];
                 const existingIndex = history.findIndex(h => h.dateStr === today && h.day === dayKey);
                 
-                const entry = {
-                    dateStr: today,
+                const entry = { dateStr: today, timestamp: new Date().getTime(), day: dayKey, exercises: currentLog };
+
+                if (existingIndex > -1) history[existingIndex] = entry; 
+                else history.push(entry);
+
+                localStorage.setItem('workout_history', JSON.stringify(history));
+            }
+
+            // --- CHARTS ---
+            window.showChart = function(exId, exName) {
+                document.getElementById('chartModal').classList.remove('hidden');
+                document.getElementById('chartTitle').innerText = exName;
+
+                let history = [];
+                try { history = JSON.parse(localStorage.getItem('workout_history')) || []; } catch(e) {}
+
+                // Safely filter history
+                const relevantData = history.filter(h => h.exercises && h.exercises[exId] && h.exercises[exId].weight)
+                                            .sort((a,b) => a.timestamp - b.timestamp);
+
+                const labels = relevantData.map(h => h.dateStr.slice(5));
+                const dataPoints = relevantData.map(h => parseInt(h.exercises[exId].weight) || 0);
+
+                if (chartInstance) chartInstance.destroy();
+                
+                // Check if Chart is loaded
+                if (typeof Chart !== 'undefined') {
+                    const canvas = document.getElementById('progressChart');
+                    chartInstance = new Chart(canvas, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Lbs',
+                                data: dataPoints,
+                                borderColor: '#34d399',
+                                backgroundColor: 'rgba(52, 211, 153, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#10b981'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                                x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                            }
+                        }
+                    });
+                } else {
+                    alert("Chart library not loaded. Check internet connection.");
+                }
+            };
+
+            window.closeChart = function() {
+                document.getElementById('chartModal').classList.add('hidden');
+            };
+
+            // --- EVENTS ---
+            selector.addEventListener('change', (e) => {
+                localStorage.setItem('lastDay', e.target.value);
+                renderDay(e.target.value);
+            });
+            notesInput.addEventListener('input', triggerAutoSave);
+            
+            // Timer
+            document.getElementById('timerToggleBtn').addEventListener('click', () => document.getElementById('timerContainer').classList.toggle('translate-y-full'));
+            document.getElementById('closeTimerBtn').addEventListener('click', () => document.getElementById('timerContainer').classList.add('translate-y-full'));
+            document.querySelectorAll('.timer-btn').forEach(btn => btn.addEventListener('click', (e) => startTimer(parseInt(e.target.dataset.time))));
+
+            function startTimer(seconds) {
+                clearInterval(currentTimer);
+                let remaining = seconds;
+                timerDisplay.innerText = formatTime(remaining);
+                timerDisplay.className = "text-4xl font-mono font-bold text-emerald-400";
+                currentTimer = setInterval(() => {
+                    remaining--;
+                    timerDisplay.innerText = formatTime(remaining);
+                    if (remaining <= 0) {
+                        clearInterval(currentTimer);
+                        timerDisplay.innerText = "GO!";
+                        timerDisplay.className = "text-4xl font-mono font-bold text-red-500 animate-pulse";
+                    }
+                }, 1000);
+            }
+            function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+
+            init();
+        });
+    </script>
+</body>
+</html>
