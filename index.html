@@ -3,24 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>39 Athletic: Voice & Density</title>
+    <title>39 Athletic: Auto-Save</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         button { touch-action: manipulation; }
         .fade-in { animation: fadeIn 0.3s ease-in; }
-        .mic-active { animation: pulse Red 1.5s infinite; color: #ef4444; }
+        .mic-active { animation: pulseRed 1.5s infinite; color: #ef4444; }
+        .saved-flash { animation: flashGreen 1s ease-out; }
+        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulseRed { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        @keyframes flashGreen { 0% { color: #34d399; transform: scale(1.1); } 100% { color: #94a3b8; transform: scale(1); } }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-200 min-h-screen pb-32">
 
     <div class="fixed top-0 w-full bg-slate-800 border-b border-slate-700 z-10 p-4 flex justify-between items-center shadow-lg">
-        <h1 class="font-bold text-xl text-emerald-400"><i class="fas fa-fingerprint mr-2"></i>Athletic 39</h1>
-        <select id="daySelector" class="bg-slate-700 text-white p-2 rounded border border-slate-600 focus:outline-none focus:border-emerald-500">
-            </select>
+        <h1 class="font-bold text-xl text-emerald-400"><i class="fas fa-bolt mr-2"></i>Athletic 39</h1>
+        <div class="flex items-center gap-3">
+            <span id="saveStatus" class="text-xs text-slate-500 font-mono transition-colors"><i class="fas fa-wifi mr-1"></i>Ready</span>
+            <select id="daySelector" class="bg-slate-700 text-white p-2 rounded border border-slate-600 focus:outline-none focus:border-emerald-500 text-sm">
+                </select>
+        </div>
     </div>
 
     <div class="container mx-auto px-4 pt-24 max-w-md" id="app">
@@ -45,9 +51,9 @@
             <textarea id="workoutNotes" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm focus:border-emerald-500 outline-none" rows="3" placeholder="Weights used / RPE..."></textarea>
         </div>
 
-        <button id="saveBtn" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-4 rounded shadow-lg transition-colors">
-            <i class="fas fa-save mr-2"></i> Log Workout
-        </button>
+        <div class="text-center mt-6 text-xs text-slate-500 italic">
+            <i class="fas fa-check-circle mr-1"></i> All changes save automatically
+        </div>
 
         <div class="text-center mt-8">
             <button id="resetBtn" class="text-xs text-slate-600 hover:text-red-400 underline">
@@ -75,81 +81,61 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- DATA MODEL (Physiology Optimized) ---
+            // --- DATA MODEL ---
             const workoutData = {
                 day1: {
-                    title: "Day 1: Posterior Power",
-                    strategy: "TRI-SET: Perform 1, 2, and 3 back-to-back. Rest 90s only after Calf Raises. The Goblet Squat provides the quad strength missing from RDLs.",
-                    warmup: [
-                        "90/90 Hip Switch (60s)",
-                        "Cat-Cow (60s)",
-                        "Deep Squat Hold (30s)",
-                        "Glute Bridges (15 reps)"
-                    ],
+                    title: "Day 1: Posterior",
+                    strategy: "TRI-SET: Perform 1, 2, and 3 back-to-back. Rest 90s only after Calf Raises.",
+                    warmup: ["90/90 Hip Switch (60s)", "Cat-Cow (60s)", "Deep Squat Hold (30s)", "Glute Bridges (15 reps)"],
                     exercises: [
-                        { name: "1. DB Romanian Deadlift", sets: 4, reps: "10", note: "Heavy hinge. Back flat." },
-                        { name: "2. Heels-Elevated Goblet Squat", sets: 4, reps: "10", note: "Heels on small plates. Deep depth." },
-                        { name: "3. DB Calf Raises", sets: 4, reps: "15", note: "Burnout tempo." },
-                        { name: "4. Cool Down: Pigeon Pose", sets: 1, reps: "60s", note: "Deep stretch" }
+                        { name: "1. DB RDL", sets: 4, reps: "10", note: "Heavy hinge." },
+                        { name: "2. Goblet Squat", sets: 4, reps: "10", note: "Heels elevated." },
+                        { name: "3. DB Calf Raises", sets: 4, reps: "15", note: "Burnout." },
+                        { name: "4. Pigeon Pose", sets: 1, reps: "60s", note: "Stretch." }
                     ]
                 },
                 day2: {
-                    title: "Day 2: Upper Chest & Width",
-                    strategy: "ANTAGONIST SUPERSET: Pair 1A/1B, rest 60s. Then 2A/2B. The Incline Press targets the 'athletic shelf' of the upper chest.",
-                    warmup: [
-                        "Thoracic Extension on Bench (60s)",
-                        "Arm Circles (30s)",
-                        "Band/Mock Pull-Aparts (20 reps)"
-                    ],
+                    title: "Day 2: Chest/Width",
+                    strategy: "ANTAGONIST SUPERSET: Pair 1A/1B, rest 60s. Then 2A/2B.",
+                    warmup: ["Thoracic Ext (60s)", "Arm Circles (30s)", "Band Pull-Aparts (20 reps)"],
                     exercises: [
-                        { name: "1A. Flat DB Bench Press", sets: 4, reps: "8", note: "Heavy compound strength." },
-                        { name: "1B. DB Pullovers", sets: 4, reps: "12", note: "Lying on bench. Stretch the lats." },
-                        { name: "2A. Incline DB Press", sets: 3, reps: "10", note: "Set bench to 30-45 degrees." },
-                        { name: "2B. DB Lateral Raises", sets: 3, reps: "15", note: "Strict form. No swinging." }
+                        { name: "1A. Flat DB Bench", sets: 4, reps: "8", note: "Heavy." },
+                        { name: "1B. DB Pullovers", sets: 4, reps: "12", note: "Stretch lats." },
+                        { name: "2A. Incline DB Press", sets: 3, reps: "10", note: "Upper shelf." },
+                        { name: "2B. Lateral Raises", sets: 3, reps: "15", note: "Strict." }
                     ]
                 },
                 day3: {
-                    title: "Day 3: Mobility Flow",
-                    strategy: "CONTINUOUS MOVEMENT: Keep moving for 20-30 mins. This flushes metabolic waste and improves joint ROM.",
-                    warmup: [
-                        "World's Greatest Stretch (2 min)",
-                        "Thoracic Rotations (10/side)"
-                    ],
+                    title: "Day 3: Mobility",
+                    strategy: "CONTINUOUS FLOW: Keep moving for 20-30 mins.",
+                    warmup: ["World's Greatest Stretch (2 min)", "Thoracic Rotations (10/side)"],
                     exercises: [
-                        { name: "1. DB Woodchoppers", sets: 3, reps: "12/side", note: "Control the rotation." },
-                        { name: "2. Single-Leg Glute Bridge", sets: 3, reps: "12/leg", note: "Squeeze top." },
-                        { name: "3. Bird-Dog Rows", sets: 3, reps: "10/side", note: "Bench support." },
-                        { name: "4. Deadbug", sets: 3, reps: "20 total", note: "Core stability." }
+                        { name: "1. DB Woodchoppers", sets: 3, reps: "12/side", note: "Control." },
+                        { name: "2. 1-Leg Glute Bridge", sets: 3, reps: "12/leg", note: "Squeeze." },
+                        { name: "3. Bird-Dog Rows", sets: 3, reps: "10/side", note: "Support." },
+                        { name: "4. Deadbug", sets: 3, reps: "20 total", note: "Core." }
                     ]
                 },
                 day4: {
-                    title: "Day 4: Back Thickness & Arms",
-                    strategy: "SUPERSET: 1A/1B heavy. 2A/2B for metabolic conditioning. The Farmer's Carry is the ultimate 'lean out' finisher.",
-                    warmup: [
-                        "Cat-Cow (60s)",
-                        "Scapular Shrugs (15 reps)",
-                        "Wrist Rotations (30s)"
-                    ],
+                    title: "Day 4: Back/Arms",
+                    strategy: "SUPERSET: 1A/1B heavy. 2A/2B metabolic.",
+                    warmup: ["Cat-Cow (60s)", "Scapular Shrugs (15 reps)", "Wrist Rotations (30s)"],
                     exercises: [
-                        { name: "1A. One-Arm DB Row", sets: 4, reps: "8", note: "Heavy. Elbow to hip." },
-                        { name: "1B. DB Rear Delt Flys", sets: 4, reps: "15", note: "Hit the upper back." },
-                        { name: "2A. Farmer's Carry", sets: 4, reps: "60s", note: "Max heavy. Perfect posture." },
-                        { name: "2B. Hammer Curls", sets: 4, reps: "10", note: "Superset immediately." }
+                        { name: "1A. One-Arm Row", sets: 4, reps: "8", note: "Heavy." },
+                        { name: "1B. Rear Delt Flys", sets: 4, reps: "15", note: "Upper back." },
+                        { name: "2A. Farmer's Carry", sets: 4, reps: "60s", note: "Max heavy." },
+                        { name: "2B. Hammer Curls", sets: 4, reps: "10", note: "Superset." }
                     ]
                 },
                 day5: {
-                    title: "Day 5: The 'Complex'",
-                    strategy: "THE GRIND: Do not drop the DBs during the set. 5 reps of each exercise = 1 round. Rest 90s. Repeat 5 times.",
-                    warmup: [
-                        "Jumping Jacks (60s)",
-                        "Bodyweight Squats (20 reps)",
-                        "Inchworms (5 reps)"
-                    ],
+                    title: "Day 5: Complex",
+                    strategy: "THE GRIND: No dropping DBs. 5 reps each = 1 round. Rest 90s. 5 Rounds.",
+                    warmup: ["Jumping Jacks (60s)", "Bodyweight Squats (20 reps)", "Inchworms (5 reps)"],
                     exercises: [
                         { name: "A. DB RDL", sets: 5, reps: "6", note: "Hinge." },
-                        { name: "B. DB Hang Clean", sets: 5, reps: "6", note: "Explode hips." },
-                        { name: "C. DB Thruster", sets: 5, reps: "6", note: "Deep squat + Press." },
-                        { name: "D. Renegade Row", sets: 5, reps: "6/side", note: "Core finisher." }
+                        { name: "B. Hang Clean", sets: 5, reps: "6", note: "Explode." },
+                        { name: "C. DB Thruster", sets: 5, reps: "6", note: "Press." },
+                        { name: "D. Renegade Row", sets: 5, reps: "6/side", note: "Core." }
                     ]
                 }
             };
@@ -160,19 +146,18 @@
             const warmupList = document.getElementById('warmupList');
             const strategyText = document.getElementById('dailyStrategy');
             const notesInput = document.getElementById('workoutNotes');
-            const saveBtn = document.getElementById('saveBtn');
             const resetBtn = document.getElementById('resetBtn');
+            const saveStatus = document.getElementById('saveStatus');
             const timerContainer = document.getElementById('timerContainer');
             const timerDisplay = document.getElementById('timerDisplay');
             let currentTimer = null;
 
-            // --- VOICE RECOGNITION SETUP ---
+            // --- VOICE SETUP ---
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const hasVoice = !!SpeechRecognition;
 
             function startListening(targetInputId, iconId) {
-                if (!hasVoice) { alert("Voice not supported in this browser."); return; }
-                
+                if (!hasVoice) { alert("Voice not supported"); return; }
                 const recognition = new SpeechRecognition();
                 recognition.lang = 'en-US';
                 recognition.interimResults = false;
@@ -185,24 +170,21 @@
 
                 recognition.onresult = (event) => {
                     const transcript = event.results[0][0].transcript;
-                    const number = transcript.replace(/[^0-9.]/g, ''); // Extract numbers only
+                    const number = transcript.replace(/[^0-9.]/g, ''); 
                     if (number) {
-                        document.getElementById(targetInputId).value = number;
+                        const input = document.getElementById(targetInputId);
+                        input.value = number;
+                        // TRIGGER AUTO SAVE
+                        triggerAutoSave();
                     }
                     icon.classList.remove('mic-active');
                 };
 
-                recognition.onerror = (event) => {
-                    console.error("Speech error", event.error);
-                    icon.classList.remove('mic-active');
-                };
-                
-                recognition.onend = () => {
-                    icon.classList.remove('mic-active');
-                };
+                recognition.onerror = (e) => { icon.classList.remove('mic-active'); };
+                recognition.onend = () => { icon.classList.remove('mic-active'); };
             }
 
-            // --- INIT ---
+            // --- CORE FUNCTIONS ---
             function init() {
                 selector.innerHTML = '';
                 Object.keys(workoutData).forEach(key => {
@@ -213,16 +195,10 @@
                 });
 
                 const savedDay = localStorage.getItem('lastDay') || 'day1';
-                if(workoutData[savedDay]) {
-                    selector.value = savedDay;
-                    renderDay(savedDay);
-                } else {
-                    selector.value = 'day1';
-                    renderDay('day1');
-                }
+                selector.value = workoutData[savedDay] ? savedDay : 'day1';
+                renderDay(selector.value);
             }
 
-            // --- RENDER ---
             function renderDay(dayKey) {
                 const data = workoutData[dayKey];
                 strategyText.innerText = data.strategy;
@@ -230,17 +206,10 @@
                 list.innerHTML = '';
                 warmupList.innerHTML = '';
 
-                // Render Warmup
                 data.warmup.forEach(item => {
-                    const html = `
-                    <div class="flex items-center bg-slate-800 p-3 rounded border border-slate-700">
-                        <i class="fas fa-check-circle text-emerald-500 mr-3 opacity-75"></i>
-                        <span class="text-slate-300 text-sm">${item}</span>
-                    </div>`;
-                    warmupList.insertAdjacentHTML('beforeend', html);
+                    warmupList.insertAdjacentHTML('beforeend', `<div class="flex items-center bg-slate-800 p-3 rounded border border-slate-700"><i class="fas fa-check-circle text-emerald-500 mr-3 opacity-75"></i><span class="text-slate-300 text-sm">${item}</span></div>`);
                 });
 
-                // Render Exercises
                 let logs = {};
                 try { logs = JSON.parse(localStorage.getItem(`logs_${dayKey}`)) || {}; } catch(e) {}
 
@@ -264,31 +233,58 @@
                                 <label class="text-[10px] uppercase text-slate-500 block mb-1">Weight (lbs)</label>
                                 <div class="relative">
                                     <input type="number" id="${inputId}" data-id="${exId}" value="${savedWeight}" placeholder="-" 
-                                        class="weight-input w-full bg-slate-900 border border-slate-600 rounded p-2 pl-3 pr-10 text-white focus:border-emerald-500 outline-none text-lg">
+                                        class="auto-save-input w-full bg-slate-900 border border-slate-600 rounded p-2 pl-3 pr-10 text-white focus:border-emerald-500 outline-none text-lg">
                                     <i id="${micIconId}" class="fas fa-microphone absolute right-3 top-3 text-slate-500 cursor-pointer hover:text-emerald-400 transition-colors"></i>
                                 </div>
                             </div>
                             <div class="w-1/2">
                                 <label class="text-[10px] uppercase text-slate-500 block mb-1">Notes</label>
                                 <input type="text" placeholder="Feel..." 
-                                    class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:border-emerald-500 outline-none text-sm h-[46px]">
+                                    class="auto-save-input w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:border-emerald-500 outline-none text-sm h-[46px]">
                             </div>
                         </div>
                     </div>`;
                     list.insertAdjacentHTML('beforeend', html);
                 });
 
-                // Attach Voice Listeners after DOM update
+                // Attach Listeners
                 data.exercises.forEach((ex, index) => {
                     const exId = `${dayKey}_ex_${index}`;
                     const micBtn = document.getElementById(`mic_${exId}`);
-                    const inputId = `weight_${exId}`;
-                    if(micBtn) {
-                        micBtn.addEventListener('click', () => startListening(inputId, `mic_${exId}`));
-                    }
+                    if(micBtn) micBtn.addEventListener('click', () => startListening(`weight_${exId}`, `mic_${exId}`));
+                });
+
+                // Attach Auto-Save to Inputs
+                document.querySelectorAll('.auto-save-input').forEach(input => {
+                    input.addEventListener('input', triggerAutoSave);
                 });
 
                 notesInput.value = logs.notes || '';
+            }
+
+            // --- AUTO SAVE LOGIC ---
+            function triggerAutoSave() {
+                const dayKey = selector.value;
+                const logToSave = { date: new Date().toISOString(), notes: notesInput.value };
+                
+                // Collect Inputs
+                const inputs = document.querySelectorAll('input[type="number"]'); // Get weight inputs
+                inputs.forEach(input => {
+                    const id = input.getAttribute('data-id');
+                    if(id) logToSave[id] = { weight: input.value };
+                });
+
+                localStorage.setItem(`logs_${dayKey}`, JSON.stringify(logToSave));
+                
+                // Visual Feedback
+                saveStatus.innerHTML = '<i class="fas fa-check text-emerald-400"></i> Saved';
+                saveStatus.classList.add('text-emerald-400');
+                
+                // Reset visual after 1s
+                setTimeout(() => {
+                    saveStatus.innerHTML = '<i class="fas fa-wifi mr-1"></i>Ready';
+                    saveStatus.classList.remove('text-emerald-400');
+                }, 1000);
             }
 
             // --- EVENTS ---
@@ -297,30 +293,13 @@
                 renderDay(e.target.value);
             });
 
-            saveBtn.addEventListener('click', () => {
-                const dayKey = selector.value;
-                const logToSave = { date: new Date().toISOString(), notes: notesInput.value };
-                
-                document.querySelectorAll('.weight-input').forEach(input => {
-                    logToSave[input.dataset.id] = { weight: input.value };
-                });
-
-                localStorage.setItem(`logs_${dayKey}`, JSON.stringify(logToSave));
-
-                const originalText = saveBtn.innerHTML;
-                saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-                saveBtn.classList.add('bg-emerald-700');
-                setTimeout(() => {
-                    saveBtn.innerHTML = originalText;
-                    saveBtn.classList.remove('bg-emerald-700');
-                }, 2000);
-            });
+            notesInput.addEventListener('input', triggerAutoSave);
 
             resetBtn.addEventListener('click', () => {
                 if(confirm("Delete all saved data?")) { localStorage.clear(); location.reload(); }
             });
 
-            // Timer Logic
+            // Timer
             document.getElementById('timerToggleBtn').addEventListener('click', () => {
                 timerContainer.classList.toggle('translate-y-full');
             });
