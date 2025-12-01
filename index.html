@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>35+ Strength (High HR)</title>
+    <title>39 Strength & Density</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -16,24 +16,20 @@
 <body class="bg-slate-900 text-slate-200 min-h-screen pb-32">
 
     <div class="fixed top-0 w-full bg-slate-800 border-b border-slate-700 z-10 p-4 flex justify-between items-center shadow-lg">
-        <h1 class="font-bold text-xl text-emerald-400"><i class="fas fa-heartbeat mr-2"></i>Turbo Mode</h1>
+        <h1 class="font-bold text-xl text-emerald-400"><i class="fas fa-layer-group mr-2"></i>Density</h1>
         <select id="daySelector" class="bg-slate-700 text-white p-2 rounded border border-slate-600 focus:outline-none focus:border-emerald-500">
             </select>
     </div>
 
     <div class="container mx-auto px-4 pt-24 max-w-md" id="app">
         
-        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg p-5 mb-6 shadow-lg border border-slate-700 fade-in relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-2 opacity-10"><i class="fas fa-fire text-6xl text-red-500"></i></div>
-            <h2 class="text-sm uppercase tracking-wide text-red-400 font-bold mb-1">Target HR Strategy</h2>
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg p-5 mb-6 shadow-lg border border-slate-700 fade-in">
+            <h2 class="text-xs uppercase tracking-wide text-emerald-500 font-bold mb-1">Execution Strategy</h2>
             <p id="dailyStrategy" class="text-white text-base font-medium mb-2 leading-relaxed">Loading...</p>
-            <div class="bg-red-900/20 p-3 rounded border border-red-900/30">
-                 <p id="dailySpiker" class="text-red-300 text-sm font-bold"><i class="fas fa-bolt mr-2"></i>Active Rest: Loading...</p>
-            </div>
         </div>
 
         <div class="mb-6 fade-in">
-            <h3 class="text-xs uppercase text-slate-500 font-bold mb-2 ml-1">Warm Up (Required)</h3>
+            <h3 class="text-xs uppercase text-slate-500 font-bold mb-2 ml-1">Targeted Warm Up</h3>
             <div id="warmupList" class="space-y-2">
                 </div>
         </div>
@@ -45,7 +41,7 @@
 
         <div class="mt-8 fade-in">
             <label class="block text-sm font-medium text-slate-400 mb-1">Session Notes</label>
-            <textarea id="workoutNotes" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm focus:border-emerald-500 outline-none" rows="3" placeholder="Did you hit the target HR?"></textarea>
+            <textarea id="workoutNotes" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm focus:border-emerald-500 outline-none" rows="3" placeholder="Weights used / RPE..."></textarea>
         </div>
 
         <button id="saveBtn" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-4 rounded shadow-lg transition-colors">
@@ -69,8 +65,8 @@
             <div id="timerDisplay" class="text-4xl font-mono font-bold text-emerald-400">00:00</div>
         </div>
         <div class="flex gap-2">
-            <button data-time="30" class="timer-btn bg-slate-700 border border-slate-600 px-4 py-3 rounded font-bold hover:bg-slate-600 active:bg-emerald-600">30s</button>
-            <button data-time="45" class="timer-btn bg-slate-700 border border-slate-600 px-4 py-3 rounded font-bold hover:bg-slate-600 active:bg-emerald-600">45s</button>
+            <button data-time="60" class="timer-btn bg-slate-700 border border-slate-600 px-4 py-3 rounded font-bold hover:bg-slate-600 active:bg-emerald-600">60s</button>
+            <button data-time="90" class="timer-btn bg-slate-700 border border-slate-600 px-4 py-3 rounded font-bold hover:bg-slate-600 active:bg-emerald-600">90s</button>
             <button id="closeTimerBtn" class="text-slate-400 px-4 hover:text-white"><i class="fas fa-chevron-down"></i></button>
         </div>
     </div>
@@ -78,72 +74,81 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- DATA MODEL (Updated for High HR) ---
-            const commonWarmup = [
-                "Jumping Jacks (60s)",
-                "Arm Circles (30s)",
-                "Cat-Cow Stretch (60s)",
-                "World's Greatest Stretch (2 min)"
-            ];
-
+            // --- DATA MODEL (Expert Revised) ---
             const workoutData = {
                 day1: {
-                    title: "Day 1: Legs (Posterior)",
-                    strategy: "CARDIO ACCELERATION: Between every set, perform 30-45s of the Active Rest move. Do not sit down.",
-                    spiker: "Mock Jump Rope (Bounce on toes, spin wrists)",
-                    warmup: commonWarmup,
+                    title: "Day 1: Posterior Chain",
+                    strategy: "TRI-SET: Perform 1, 2, and 3 back-to-back with NO REST. Rest 90s only after completing exercise 3. This continuous loading of large muscles will spike HR.",
+                    warmup: [
+                        "90/90 Hip Switch (60s) - Opens hips",
+                        "Cat-Cow (60s) - Spine prep for RDL",
+                        "Glute Bridges (15 reps) - Activation",
+                        "Bodyweight Reverse Lunges (10/leg)"
+                    ],
                     exercises: [
-                        { name: "1. DB Romanian Deadlift", sets: 4, reps: "10", note: "Heavy. Back flat." },
-                        { name: "2. Bulgarian Split Squat", sets: 4, reps: "8/leg", note: "Mod weight." },
-                        { name: "3. Standing Calf Raise", sets: 4, reps: "15", note: "Fast concentric." },
-                        { name: "4. Pigeon Pose Stretch", sets: 1, reps: "60s", note: "Cool down" }
+                        { name: "1. DB Romanian Deadlift", sets: 4, reps: "10", note: "Heavy. Slow eccentric (3s down)." },
+                        { name: "2. DB Reverse Lunges", sets: 4, reps: "8/leg", note: "Mod weight. Explode up." },
+                        { name: "3. DB Calf Raises", sets: 4, reps: "15", note: "Burnout tempo." },
+                        { name: "4. Cool Down: Pigeon Pose", sets: 1, reps: "60s", note: "Deep stretch" }
                     ]
                 },
                 day2: {
-                    title: "Day 2: Push (Chest/Shoulders)",
-                    strategy: "CARDIO ACCELERATION: Keep moving between sets. Keep blood flowing from upper to lower body.",
-                    spiker: "High Knees (March in place vigorously)",
-                    warmup: commonWarmup,
+                    title: "Day 2: Push (Supersets)",
+                    strategy: "ANTAGONIST PAIRING: Pair Chest and Core/Shoulder. Perform 1A then 1B immediately. Rest 60s. Then move to 2A/2B. This eliminates passive sitting.",
+                    warmup: [
+                        "Thoracic Extension on Bench (60s)",
+                        "Y-W-T Raises (Bodyweight) (15 reps)",
+                        "Push-ups -> Down Dog Flow (10 reps)"
+                    ],
                     exercises: [
-                        { name: "1. Flat DB Bench Press", sets: 4, reps: "8-10", note: "Heavy." },
-                        { name: "2. Standing Lateral Raise", sets: 4, reps: "12-15", note: "Strict form." },
-                        { name: "3. DB Skullcrushers", sets: 4, reps: "10", note: "Lying on bench." },
-                        { name: "4. Russian Twists", sets: 4, reps: "20 total", note: "Fast pace." }
+                        { name: "1A. Flat DB Bench Press", sets: 4, reps: "8-10", note: "Heavy compound." },
+                        { name: "1B. Plank to Push-up", sets: 4, reps: "10", note: "Active core stability." },
+                        { name: "2A. Seated Overhead Press", sets: 3, reps: "10", note: "Strict form." },
+                        { name: "2B. DB Lateral Raises", sets: 3, reps: "15", note: "Constant tension." }
                     ]
                 },
                 day3: {
                     title: "Day 3: Active Recovery",
-                    strategy: "NON-STOP FLOW: Minimal rest. Move from one exercise to the next immediately.",
-                    spiker: "Step-Ups (Unweighted, fast pace on bench)",
-                    warmup: commonWarmup,
+                    strategy: "FLOW: Move continuously. The goal is blood flow and joint health, not max HR. Keep weights light, range of motion maximal.",
+                    warmup: [
+                        "World's Greatest Stretch (2 min)",
+                        "Thoracic Rotations (10/side)"
+                    ],
                     exercises: [
-                        { name: "1. DB Woodchoppers", sets: 3, reps: "12/side", note: "Increase tempo." },
-                        { name: "2. Weighted Glute Bridge", sets: 3, reps: "15", note: "Squeeze top." },
-                        { name: "3. Bird-Dog Rows", sets: 3, reps: "10/side", note: "Core tight." },
-                        { name: "4. Plank Hold", sets: 3, reps: "60s", note: "Don't drop." }
+                        { name: "1. DB Woodchoppers", sets: 3, reps: "12/side", note: "Control the rotation." },
+                        { name: "2. Single-Leg Glute Bridge", sets: 3, reps: "12/leg", note: "Bodyweight or Light DB." },
+                        { name: "3. Bird-Dog Rows", sets: 3, reps: "10/side", note: "Bench support." },
+                        { name: "4. Deadbug", sets: 3, reps: "20 total", note: "Keep lower back flat." }
                     ]
                 },
                 day4: {
-                    title: "Day 4: Pull (Back/Bicep)",
-                    strategy: "CARDIO ACCELERATION: Use the swing to spike HR between strict pulls.",
-                    spiker: "KB Swings (Use 1 DB, hold head)",
-                    warmup: commonWarmup,
+                    title: "Day 4: Pull (Pre-Fatigue)",
+                    strategy: "SUPERSETS: Group exercises. 1A+1B, Rest, then 2A+2B. The heavy carry (2A) places massive metabolic demand on the entire body.",
+                    warmup: [
+                        "Band Pull-Aparts (or mock motion) (20 reps)",
+                        "Scapular Pull-downs/Shrugs (15 reps)",
+                        "Cat-Cow (60s)"
+                    ],
                     exercises: [
-                        { name: "1. One-Arm DB Row", sets: 4, reps: "8-10", note: "Heavy." },
-                        { name: "2. DB Rear Delt Flys", sets: 4, reps: "12-15", note: "Seated." },
-                        { name: "3. Incline/Seated Curls", sets: 4, reps: "10", note: "Full ROM." },
-                        { name: "4. Farmer's Carry", sets: 4, reps: "60s", note: "Fast walk." }
+                        { name: "1A. One-Arm DB Row", sets: 4, reps: "8", note: "Heavy. Elbow to hip." },
+                        { name: "1B. DB Rear Delt Flys", sets: 4, reps: "15", note: "Light. Squeeze upper back." },
+                        { name: "2A. Farmer's Carry", sets: 4, reps: "60s", note: "Max heavy. Posture tight." },
+                        { name: "2B. Hammer Curls", sets: 4, reps: "10", note: "Superset immediately." }
                     ]
                 },
                 day5: {
-                    title: "Day 5: Metabolic Finisher",
-                    strategy: "NO REST LADDER: This is designed to max HR. If you hit failure, take 10s and go again.",
-                    spiker: "Mountain Climbers (Between Ladders)",
-                    warmup: commonWarmup,
+                    title: "Day 5: The 'Complex'",
+                    strategy: "COMPLEX: Don't put the dumbbells down during the set. 5 Reps of A, 5 of B, 5 of C = 1 Round. This guarantees HR > 145.",
+                    warmup: [
+                        "Jumping Jacks (60s)",
+                        "Bodyweight Squats (20 reps)",
+                        "Walkouts (Inchworms) (5 reps)"
+                    ],
                     exercises: [
-                        { name: "A. DB Thrusters", sets: 1, reps: "10-1", note: "Deep squat, press up." },
-                        { name: "B. Floor Press", sets: 1, reps: "10-1", note: "Keep tempo high." },
-                        { name: "Finisher: Plank", sets: 1, reps: "Max", note: "Empty the tank." }
+                        { name: "A. DB RDL", sets: 5, reps: "6", note: "Hinge pattern." },
+                        { name: "B. DB Hang Clean (or Shrug)", sets: 5, reps: "6", note: "Explosive pull." },
+                        { name: "C. DB Thruster", sets: 5, reps: "6", note: "Squat + Press." },
+                        { name: "D. Renegade Row (or Plank)", sets: 5, reps: "6/side", note: "Core finisher." }
                     ]
                 }
             };
@@ -153,7 +158,6 @@
             const list = document.getElementById('exerciseList');
             const warmupList = document.getElementById('warmupList');
             const strategyText = document.getElementById('dailyStrategy');
-            const spikerText = document.getElementById('dailySpiker');
             const notesInput = document.getElementById('workoutNotes');
             const saveBtn = document.getElementById('saveBtn');
             const resetBtn = document.getElementById('resetBtn');
@@ -185,25 +189,23 @@
             function renderDay(dayKey) {
                 const data = workoutData[dayKey];
                 
-                // 1. Text Info
                 strategyText.innerText = data.strategy;
-                spikerText.innerHTML = `<i class="fas fa-bolt mr-2"></i>Active Rest: <span class="text-white">${data.spiker}</span>`;
                 
-                // 2. Clear Lists
+                // Clear Lists
                 list.innerHTML = '';
                 warmupList.innerHTML = '';
 
-                // 3. Render Warmup
+                // Render Warmup
                 data.warmup.forEach(item => {
                     const html = `
                     <div class="flex items-center bg-slate-800 p-3 rounded border border-slate-700">
-                        <div class="w-4 h-4 bg-emerald-500 rounded-full mr-3 flex-shrink-0 opacity-50"></div>
+                        <i class="fas fa-check-circle text-emerald-500 mr-3 opacity-75"></i>
                         <span class="text-slate-300 text-sm">${item}</span>
                     </div>`;
                     warmupList.insertAdjacentHTML('beforeend', html);
                 });
 
-                // 4. Render Main Exercises
+                // Render Exercises
                 let logs = {};
                 try { logs = JSON.parse(localStorage.getItem(`logs_${dayKey}`)) || {}; } catch(e) {}
 
@@ -227,8 +229,8 @@
                                     class="weight-input w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:border-emerald-500 outline-none text-lg">
                             </div>
                             <div class="w-1/2">
-                                <label class="text-[10px] uppercase text-slate-500 block mb-1">Notes/Reps</label>
-                                <input type="text" placeholder="e.g. 10,10,9,8" 
+                                <label class="text-[10px] uppercase text-slate-500 block mb-1">Notes</label>
+                                <input type="text" placeholder="Feel..." 
                                     class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white focus:border-emerald-500 outline-none text-sm h-[46px]">
                             </div>
                         </div>
